@@ -1,22 +1,24 @@
 declare type Room = {
+  events_queue: string[]
   is_started: boolean;
   used_magic_card_questions_ids: string[];
+  team_won_phase1: RoomTeamName | null,
   choosed_questions_ids: string[];
   team1: {
     name: string;
     choosen_club: string | null;
     is_connected: boolean;
     score: number;
-    correct_speed_question_answer: boolean;
     used_magic_card: boolean;
+    answered_speed_question: boolean
   };
   team2: {
     name: string;
     choosen_club: string | null;
     is_connected: boolean;
     score: number;
-    correct_speed_question_answer: boolean;
     used_magic_card: boolean;
+    answered_speed_question: boolean
   };
 }
 

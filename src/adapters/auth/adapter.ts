@@ -1,7 +1,11 @@
 import { WebSocketServer } from "ws";
-import { getParams, validateTeamName } from "../../core/lib/utils";
+import { getParams } from "../../core/lib/utils";
 import { WebSocketPool } from "../../core/lib/helpers/web-socket-pool";
 
+type StartExperienceMessage = {
+  event: "start_experience",
+  data: null
+}
 
 export function AuthAdapter(wss: WebSocketServer, wsPool: WebSocketPool, room: Room) {
   wss.addListener('connection', (ws, request) => {
@@ -23,11 +27,11 @@ export function AuthAdapter(wss: WebSocketServer, wsPool: WebSocketPool, room: R
         wsPool.append({ key: name, socket: ws });
         room[name].is_connected = true;
         ws.send(JSON.stringify({
-          event: 'you',
+          event: 'you_team',
           data: {
             name: room[name!].name,
             score: room[name].score,
-            correct_speed_question_answer: room[name].correct_speed_question_answer,
+            can_start_phase1: room.team_won_phase1 === name,
             used_magic_card: room[name].used_magic_card,
             choosen_club: room[name].choosen_club,
           }
@@ -50,6 +54,16 @@ export function AuthAdapter(wss: WebSocketServer, wsPool: WebSocketPool, room: R
         }
       })
     }
+
+    ws.on('message', (event: string) => {
+      const parsed = JSON.parse(event)
+      if (parsed.event === 'start_experience') {
+        ws.send(JSON.stringify({
+          event: 'experience_started',
+          data: null
+        }))
+      }
+    })
 
     ws.on('close', () => {
       if (!name) return

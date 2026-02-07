@@ -110,6 +110,8 @@ export function QuestionsAdapter(wss: WebSocketServer, wsPool: WebSocketPool, ro
           }))
         }
 
+        room[teamName].answered_main_questions_count += 1
+
         const is_correct = parsed.data.question_id ?
           Boolean(apps[appName].questions.magic_questions[teamName].answers.find(ans => ans.id === parsed.data.answer_id)) :
           Boolean(question.answers.find(a => a.id === parsed.data.answer_id)?.is_correct)
@@ -144,6 +146,31 @@ export function QuestionsAdapter(wss: WebSocketServer, wsPool: WebSocketPool, ro
             }
           }
         })
+
+        if (
+          (room.team1.answered_main_questions_count >= 5) &&
+          (room.team1.answered_main_questions_count === room.team2.answered_main_questions_count)
+        ) {
+          let data = {
+            score: room.team1.score,
+            name: room.team1.name,
+            club: room.team1.choosen_club,
+          }
+          if (room.team2.score > room.team1.score) {
+            data = {
+              score: room.team2.score,
+              name: room.team2.name,
+              club: room.team2.choosen_club,
+            }
+          }
+          wsPool.send({
+            to: ['team1', 'team2', 'admin'],
+            message: {
+              event: 'winner',
+              data
+            }
+          })
+        }
       }
     })
   })

@@ -1,7 +1,8 @@
 import { WebSocketServer } from 'ws';
-import { AuthAdapter } from './adapters/auth/adapter';
-import { SpeedQuestionsAdapter } from './adapters/speed_question/adapter';
+import { StartingAdapter } from './adapters/starting';
+import { SpeedQuestionsAdapter } from './adapters/speed-question';
 import { WebSocketPool } from './core/lib/helpers/web-socket-pool';
+import { ClubsAdapter } from './adapters/clubs';
 
 const PORT = 3000;
 
@@ -11,8 +12,9 @@ const socketsPool = new WebSocketPool()
 
 const room: Room = {
   is_started: false,
-  events_queue: [],
-  choosed_questions_ids: [],
+  // finished_stages: [],
+  choosen_questions_ids: [],
+  first_choosen_club_id: null,
   team_won_phase1: null,
   used_magic_card_questions_ids: [],
   team1: {
@@ -33,7 +35,7 @@ const room: Room = {
   },
 }
 
-AuthAdapter(wss, socketsPool, room)
+StartingAdapter(wss, socketsPool, room)
 SpeedQuestionsAdapter(wss, socketsPool, room)
-
+ClubsAdapter(wss, socketsPool, room)
 

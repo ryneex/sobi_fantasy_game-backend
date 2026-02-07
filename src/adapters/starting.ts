@@ -1,13 +1,13 @@
 import { WebSocketServer } from "ws";
-import { getParams } from "../../core/lib/utils";
-import { WebSocketPool } from "../../core/lib/helpers/web-socket-pool";
+import { getParams } from "../core/lib/utils";
+import { WebSocketPool } from "../core/lib/helpers/web-socket-pool";
 
 type StartExperienceMessage = {
   event: "start_experience",
   data: null
 }
 
-export function AuthAdapter(wss: WebSocketServer, wsPool: WebSocketPool, room: Room) {
+export function StartingAdapter(wss: WebSocketServer, wsPool: WebSocketPool, room: Room) {
   wss.addListener('connection', (ws, request) => {
     const name = getParams(request.url!).team_name as RoomTeamName | undefined;
     const isAdmin = (getParams(request.url!).role === 'admin')
@@ -31,7 +31,7 @@ export function AuthAdapter(wss: WebSocketServer, wsPool: WebSocketPool, room: R
           data: {
             name: room[name!].name,
             score: room[name].score,
-            can_start_phase1: room.team_won_phase1 === name,
+            can_start_phase2: room.team_won_phase1 === name,
             used_magic_card: room[name].used_magic_card,
             choosen_club: room[name].choosen_club,
           }
@@ -56,7 +56,7 @@ export function AuthAdapter(wss: WebSocketServer, wsPool: WebSocketPool, room: R
     }
 
     ws.on('message', (event: string) => {
-      const parsed = JSON.parse(event) as StartExperienceMessage
+      const parsed: StartExperienceMessage = JSON.parse(event)
       if (parsed.event === 'start_experience' && isAdmin) {
         wsPool.send({
           to: ['admin', 'team1', 'team2'],

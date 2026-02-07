@@ -1,12 +1,12 @@
 declare type Room = {
-  events_queue: string[]
   is_started: boolean;
   used_magic_card_questions_ids: string[];
   team_won_phase1: RoomTeamName | null,
-  choosed_questions_ids: string[];
+  choosen_questions_ids: string[];
+  first_choosen_club_id: number | null;
   team1: {
     name: string;
-    choosen_club: string | null;
+    choosen_club: Club | null;
     is_connected: boolean;
     score: number;
     used_magic_card: boolean;
@@ -14,7 +14,7 @@ declare type Room = {
   };
   team2: {
     name: string;
-    choosen_club: string | null;
+    choosen_club: Club | null;
     is_connected: boolean;
     score: number;
     used_magic_card: boolean;
@@ -27,6 +27,11 @@ declare type RoomTeamName = 'team1' | 'team2'
 
 declare type AppName = 'c3g' | 'dbd-dash' | 'doptlet' | 'gamifient' | 'vonjo'
 
+declare type Club = {
+  name: string;
+  id: number;
+  img_url: string;
+}
 
 declare type App = {
   questions: {
@@ -60,11 +65,7 @@ declare type App = {
     }[];
   },
 
-  clubs: {
-    name: string;
-    id: number;
-    img_url: string;
-  }[],
+  clubs: Club[],
 
 
 }

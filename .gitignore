@@ -8,6 +8,8 @@ dist/
 .env
 .env.local
 
+New folder/
+
 # IDE
 .vscode/
 .idea/

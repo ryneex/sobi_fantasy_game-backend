@@ -3,16 +3,18 @@ import { WebSocket } from 'ws';
 export class WebSocketPool {
   sockets: Record<string, WebSocket> = {}
   aliveSockets: Record<string, boolean> = {}
+  private pingInterval?: NodeJS.Timeout
+  private checkInterval?: NodeJS.Timeout
 
   constructor() {
-    setInterval(() => {
+    this.pingInterval = setInterval(() => {
       Object.entries(this.sockets).forEach(([key, socket]) => {
         socket.ping()
         this.aliveSockets[key] = false
       })
     }, 1000);
 
-    setInterval(() => {
+    this.checkInterval = setInterval(() => {
       Object.entries(this.aliveSockets).forEach(([key, alive]) => {
         if (!alive) {
           this.remove(key)
@@ -36,7 +38,6 @@ export class WebSocketPool {
   append({ key, socket }: { key: string, socket: WebSocket }) {
     this.sockets[key] = socket
     this.aliveSockets[key] = true
-
     socket.on('pong', () => {
       this.aliveSockets[key] = true
     })
@@ -44,5 +45,22 @@ export class WebSocketPool {
 
   includes(arr: string[]) {
     return arr.every((key) => this.sockets[key])
+  }
+
+  clear() {
+    // Terminate all sockets
+    Object.values(this.sockets).forEach((socket) => {
+      socket.terminate()
+    })
+
+    this.sockets = {}
+    this.aliveSockets = {}
+
+    if (this.pingInterval) {
+      clearInterval(this.pingInterval)
+    }
+    if (this.checkInterval) {
+      clearInterval(this.checkInterval)
+    }
   }
 }

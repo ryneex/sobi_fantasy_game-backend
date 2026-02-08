@@ -47,23 +47,24 @@ export function SpeedQuestionsAdapter(wss: WebSocketServer, wsPool: WebSocketPoo
         room[teamName].answered_speed_question = true;
 
         if (!isCorrect) {
-          wsPool.send({
-            to: [teamName],
-            message: {
-              event: 'speed_question_answer_status',
-              data: { correct: false }
-            }
-          })
-        } else {
           room.team_won_phase1 = teamName;
-          wsPool.send({
-            to: [teamName],
-            message: {
-              event: 'speed_question_answer_status',
-              data: { correct: true }
-            }
-          })
+          // wsPool.send({
+          //   to: [teamName],
+          //   message: {
+          //     event: 'speed_question_answer_status',
+          //     data: { correct: false }
+          //   }
+          // })
         }
+        // else {
+        //   wsPool.send({
+        //     to: [teamName],
+        //     message: {
+        //       event: 'speed_question_answer_status',
+        //       data: { correct: true }
+        //     }
+        //   })
+        // }
 
         if (room.team_won_phase1) {
           wsPool.send({

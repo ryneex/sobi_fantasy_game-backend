@@ -170,6 +170,7 @@ export function QuestionsAdapter(wss: WebSocketServer, wsPool: WebSocketPool, ro
               data
             }
           })
+          wsPool.clear()
         }
       }
     })

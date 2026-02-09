@@ -118,6 +118,7 @@ export function QuestionsAdapter(wss: WebSocketServer, wsPool: WebSocketPool, ro
                 data: {
                   score: room[currentTeam].score,
                   is_correct: false,
+                  answer_id: null,
                   question_points: question.points,
                   used_magic_card: room[currentTeam].used_magic_card,
                   team_name: room[currentTeam].name,
@@ -208,6 +209,7 @@ export function QuestionsAdapter(wss: WebSocketServer, wsPool: WebSocketPool, ro
             data: {
               score: room[teamName].score,
               is_correct,
+              answer_id: parsed.data.answer_id,
               question_points: question.points,
               used_magic_card: room[teamName].used_magic_card,
               team_name: room[teamName].name,

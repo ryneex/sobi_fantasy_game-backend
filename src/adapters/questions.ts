@@ -92,6 +92,7 @@ export function QuestionsAdapter(wss: WebSocketServer, wsPool: WebSocketPool, ro
               question,
               club: room[teamName].choosen_club,
               team_name: room[teamName].name,
+              score: room[teamName].score,
             }
           }
         });

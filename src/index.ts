@@ -13,11 +13,13 @@ const socketsPool = new WebSocketPool()
 
 const room: Room = {
   is_started: false,
-  // finished_stages: [],
   choosen_main_questions_ids: [],
   first_choosen_club_id: null,
   team_won_phase1: null,
   used_magic_card_questions_ids: [],
+  speed_question_timeout: null,
+  current_main_question_timeout: null,
+  current_answering_team: null,
   team1: {
     name: "Team (A)",
     choosen_club: null,

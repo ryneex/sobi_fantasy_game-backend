@@ -28,6 +28,33 @@ export function SpeedQuestionsAdapter(wss: WebSocketServer, wsPool: WebSocketPoo
         const questions = apps[appName].questions
         room.is_started = true;
 
+        // Clear any existing timeout
+        if (room.speed_question_timeout) {
+          clearTimeout(room.speed_question_timeout);
+        }
+
+        // Start 60-second timeout
+        room.speed_question_timeout = setTimeout(() => {
+          // Only trigger if no winner has been determined
+          if (room.team_won_phase1 === null) {
+            // If both teams answered incorrectly or no one answered, pick random winner
+            const winnerTeam = ['team1', 'team2'].at(Math.floor(Math.random() * 2)) as RoomTeamName;
+            room.team_won_phase1 = winnerTeam;
+
+            wsPool.send({
+              to: ['admin', 'team1', 'team2'],
+              message: {
+                event: 'speed_question_winner',
+                data: {
+                  team: winnerTeam,
+                  team_name: "No Winner"
+                }
+              }
+            });
+          }
+          room.speed_question_timeout = null;
+        }, 60000); // 60 seconds
+
         wsPool.send({
           to: ['admin', 'team1', 'team2'],
           message: {
@@ -46,25 +73,15 @@ export function SpeedQuestionsAdapter(wss: WebSocketServer, wsPool: WebSocketPoo
         const isCorrect = Boolean(answers.find(ans => ans.id === parsed.data.answer_id)?.is_correct)
         room[teamName].answered_speed_question = true;
 
-        if (!isCorrect) {
+        if (isCorrect) {
+          if (room.speed_question_timeout) {
+            clearTimeout(room.speed_question_timeout);
+            room.speed_question_timeout = null;
+          }
+
           room.team_won_phase1 = teamName;
-          // wsPool.send({
-          //   to: [teamName],
-          //   message: {
-          //     event: 'speed_question_answer_status',
-          //     data: { correct: false }
-          //   }
-          // })
         }
-        // else {
-        //   wsPool.send({
-        //     to: [teamName],
-        //     message: {
-        //       event: 'speed_question_answer_status',
-        //       data: { correct: true }
-        //     }
-        //   })
-        // }
+
 
         if (room.team_won_phase1) {
           wsPool.send({
@@ -87,7 +104,7 @@ export function SpeedQuestionsAdapter(wss: WebSocketServer, wsPool: WebSocketPoo
               event: 'speed_question_winner',
               data: {
                 team: winnerTeam,
-                team_name: "Tie"
+                team_name: "No Winner"
               }
             }
           })

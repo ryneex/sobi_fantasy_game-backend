@@ -4,6 +4,9 @@ declare type Room = {
   team_won_phase1: RoomTeamName | null,
   choosen_main_questions_ids: number[];
   first_choosen_club_id: number | null;
+  speed_question_timeout: NodeJS.Timeout | null;
+  current_main_question_timeout: NodeJS.Timeout | null;
+  current_answering_team: RoomTeamName | null;
   team1: {
     name: string;
     choosen_club: Club | null;

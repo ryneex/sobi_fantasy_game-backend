@@ -81,6 +81,87 @@ export function QuestionsAdapter(wss: WebSocketServer, wsPool: WebSocketPool, ro
             }))
           }
         }
+
+        // Clear any existing timeout
+        if (room.current_main_question_timeout) {
+          clearTimeout(room.current_main_question_timeout);
+        }
+
+        // Store current answering team
+        room.current_answering_team = teamName;
+
+        // Start 60-second timeout for this question
+        room.current_main_question_timeout = setTimeout(() => {
+          // Auto-mark as wrong if no answer received
+          const currentTeam = room.current_answering_team;
+          if (currentTeam && question) {
+            const remainingTeamName = getRemainingTeamName(currentTeam);
+
+            // Increment answered questions count
+            room[currentTeam].answered_main_questions_count += 1;
+
+            // Deduct points for timeout (wrong answer)
+            room[currentTeam].score -= question.points;
+
+            // Send result to admin (same as normal answer flow)
+            wsPool.send({
+              to: ['admin'],
+              message: {
+                event: 'main_question_answer_result',
+                data: {
+                  score: room[currentTeam].score,
+                  is_correct: false,
+                  question_points: question.points,
+                  used_magic_card: room[currentTeam].used_magic_card,
+                  team_name: room[currentTeam].name,
+                  club: room[currentTeam].choosen_club,
+                }
+              }
+            });
+
+            // Unhold the other team (same as normal answer flow)
+            wsPool.send({
+              to: [remainingTeamName],
+              message: {
+                event: 'unhold_choosing_main_question',
+                data: {
+                  choosen_questions_ids: room.choosen_main_questions_ids
+                }
+              }
+            });
+
+            // Check for game end
+            if (
+              (room.team1.answered_main_questions_count >= 5) &&
+              (room.team1.answered_main_questions_count === room.team2.answered_main_questions_count)
+            ) {
+              let data = {
+                score: room.team1.score,
+                name: room.team1.name,
+                club: room.team1.choosen_club,
+              }
+              if (room.team2.score > room.team1.score) {
+                data = {
+                  score: room.team2.score,
+                  name: room.team2.name,
+                  club: room.team2.choosen_club,
+                }
+              }
+              wsPool.send({
+                to: ['team1', 'team2', 'admin'],
+                message: {
+                  event: 'winner',
+                  data
+                }
+              })
+              wsPool.clear()
+            }
+          }
+
+          // Clear timeout and current answering team
+          room.current_main_question_timeout = null;
+          room.current_answering_team = null;
+        }, 60000); // 60 seconds
         room.choosen_main_questions_ids.push(parsed.data.question_id)
         wsPool.send({
           to: ['admin'],
@@ -98,6 +179,13 @@ export function QuestionsAdapter(wss: WebSocketServer, wsPool: WebSocketPool, ro
           }
         })
       } else if (parsed.event === 'answer_main_question' && !isAdmin) {
+        // Clear timeout when answer is received
+        if (room.current_main_question_timeout) {
+          clearTimeout(room.current_main_question_timeout);
+          room.current_main_question_timeout = null;
+        }
+        room.current_answering_team = null;
+
         const question = apps[appName].questions.main_questions.find(q => q.id === parsed.data.question_id)
         const remainingTeamName = getRemainingTeamName(teamName)
 

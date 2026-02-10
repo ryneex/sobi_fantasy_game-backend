@@ -1,6 +1,6 @@
 import { WebSocketServer } from "ws";
 import { WebSocketPool } from "../core/lib/helpers/web-socket-pool";
-import { getParams, getRemainingTeamName } from "../core/lib/utils";
+import { getParams, getRemainingTeamName, wait } from "../core/lib/utils";
 import { apps } from "../core/lib/assets";
 
 type Message = {
@@ -219,14 +219,16 @@ export function QuestionsAdapter(wss: WebSocketServer, wsPool: WebSocketPool, ro
           }
         })
 
-        wsPool.send({
-          to: [remainingTeamName],
-          message: {
-            event: 'unhold_choosing_main_question',
-            data: {
-              choosen_questions_ids: room.choosen_main_questions_ids
+        wait(5000).then(() => {
+          wsPool.send({
+            to: [remainingTeamName],
+            message: {
+              event: 'unhold_choosing_main_question',
+              data: {
+                choosen_questions_ids: room.choosen_main_questions_ids
+              }
             }
-          }
+          })
         })
 
         if (
